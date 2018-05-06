@@ -35,6 +35,9 @@ class chatroomClient:
 			msg = str(input("You: "))
 			self.send(msg)
 
+			if msg == "/exit":
+				exit()
+
 	def listen(self):
 
 		print("Connected to the room")

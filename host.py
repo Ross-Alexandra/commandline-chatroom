@@ -79,7 +79,8 @@ class chatroomServer:
 						#: this client no longer exists, and
 						#: should be removed.
 						try:
-							client.send(message[0].encode())
+							if message[1] != address:
+								client.send(message[0].encode())
 						except:
 							print("Removing missing client {}".format(address))
 							self.clientlist.remove((client, address))
@@ -155,7 +156,11 @@ class chatroomServer:
 				#: If the message is not blank, then append the message
 				#: to the unprocessed messages list, and print to the main
 				#: server that this client has sent a message.
-				if msg != "":
+				if msg == "":
+					continue
+				elif msg == "/exit":
+					raise Error("Disconnect")
+				else:
 					self.messages.append(("{}: {}".format(address, msg), address))
 					print("Recieved message: \'{}\' from {}".format(msg, address))
 
@@ -192,4 +197,4 @@ if __name__ == "__main__":
 	host = ''
 	port = 34343
 
-	chatroomServer(host, port).listen()
+	chatroomServer(host, port).listen(inactivity_timeout=300)
