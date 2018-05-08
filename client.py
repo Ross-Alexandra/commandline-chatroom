@@ -51,7 +51,7 @@ class chatroomClient:
 			msg = str(input("You: "))
 			self.send(msg)
 
-			if msg == "/exit":
+			if msg == "/quit":
 				exit()
 
 	def listen(self):

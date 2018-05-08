@@ -1,13 +1,14 @@
 import socket
 import threading
 import time
+from server_command_controller import command_list
 
 """
 TODO:
 
 	- Change the public usage of address to a username.
 
-	- Add a seperate method to control commands.
+	- Add command permissions
 
 	- Add reasons for clients being disconnected.
 """
@@ -133,6 +134,24 @@ class chatroomServer:
 			#: and pass the client and their address to the thread.
 			threading.Thread(target=self.manage_client, args=(client, addr)).start()
 
+	def handle_commands(self, command: str, client, address):
+		""" self.handle_commands(str, socket, tuple)
+
+			Handle's commands sent by the user.
+
+
+			Args:
+				command(str): The command that is to be run.
+				client(socket): The client trying to execute the command.
+				address(tuple): The ip and port of the client.
+		"""
+
+		#: Split the command into its arguments
+		command_args = command.split(" ")
+
+		#: Call the requested command.
+		command_list[command_args[0]](self, client, address, command_args)
+
 	def manage_client(self, client, address):
 		""" self.manage_client(socket, tuple)
 
@@ -166,8 +185,8 @@ class chatroomServer:
 				#: server that this client has sent a message.
 				if msg == "":
 					continue
-				elif msg == "/exit":
-					raise Error("Disconnect")
+				elif msg[0] == "/":
+					self.handle_command(msg[1:], client, address)
 				else:
 					self.messages.append(("{}: {}".format(address, msg), address))
 					print("Recieved message: \'{}\' from {}".format(msg, address))
@@ -186,7 +205,6 @@ class chatroomServer:
 				#: If a message was sent sucessfully, wait one second before
 				#: processing another.
 				time.sleep(1)
-
 
 	def close_client(self, client, address):
 		""" self.close_client(socket, tuple)
@@ -219,4 +237,4 @@ if __name__ == "__main__":
 	host = ''
 	port = 34343
 
-	chatroomServer(host, port).listen(inactivity_timeout=6)
+	chatroomServer(host, port).listen(inactivity_timeout=60)
