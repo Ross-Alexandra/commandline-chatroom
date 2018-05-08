@@ -44,6 +44,8 @@ class chatroomClient:
 		#: Connect to the room.
 		self.client.connect((host, port))
 
+		self.listen_thread.start()
+
 		#: Main loop. This allows the user to send messages to the client.
 		while True:
 			msg = str(input("You: "))
