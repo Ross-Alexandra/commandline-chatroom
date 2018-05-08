@@ -82,9 +82,7 @@ class chatroomServer:
 							if message[1] != address:
 								client.send(message[0].encode())
 						except:
-							print("Removing missing client {}".format(address))
-							self.clientlist.remove((client, address))
-							client.close()
+							self.close_client(client, address)
 
 					#: Log that the message has been sent to each
 					#: client to the main server.
@@ -181,6 +179,17 @@ class chatroomServer:
 
 
 	def close_client(self, client, address):
+		""" self.close_client(socket, tuple)
+
+			Closes the connection to the passed client, and sends a message
+			to the server that they have.
+
+			Args:
+				client(socket): The client.
+				address(tuple): a Tuple of the client's IP address and port.)
+
+		"""
+
 		#: Send the shutdown code to the client.
 		client.send("SD".encode())
 
