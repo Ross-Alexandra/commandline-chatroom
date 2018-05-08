@@ -73,9 +73,11 @@ class chatroomClient:
 			#: messages will always have an identifier and : before their
 			#: message, thus,the only messages that don't include an
 			#: identifier will be from the server itself.
-			elif msg == "SD":
+			elif msg[:5] == "close":
 
-				print("This client was closed due to inactivity")
+				reason = msg[6:]
+
+				print("This client was closed due to {}.".format(reason))
 				self.client.close()
 				exit()
 
