@@ -168,18 +168,7 @@ class chatroomServer:
 			#: client either being forcefully disconnected.
 			except:
 
-				#: Send the shutdown code to the client.
-				client.send("SD".encode())
-
-				#: Append a message to the unprocess messages that the client
-				#: has disconnected.
-				self.messages.append(("{} Has disconnected.".format(address), address))
-
-				#: Reomve the client from the clients list, and close their
-				#: connection.
-				print("Removing inactive client {}".format(address))
-				self.clientlist.remove((client, address))
-				client.close()
+				self.close_client(client, address)
 
 				#: End the thread.
 				return False
@@ -191,10 +180,24 @@ class chatroomServer:
 				time.sleep(1)
 
 
+	def close_client(self, client, address):
+		#: Send the shutdown code to the client.
+		client.send("SD".encode())
+
+		#: Append a message to the unprocess messages that the client
+		#: has disconnected.
+		self.messages.append(("{} Has disconnected.".format(address), address))
+
+		#: Reomve the client from the clients list, and close their
+		#: connection.
+		print("Removing inactive client {}".format(address))
+		self.clientlist.remove((client, address))
+		client.close()
+
 if __name__ == "__main__":
 
 	#: Creates a public server on port 34343
 	host = ''
 	port = 34343
 
-	chatroomServer(host, port).listen(inactivity_timeout=300)
+	chatroomServer(host, port).listen(inactivity_timeout=6)
