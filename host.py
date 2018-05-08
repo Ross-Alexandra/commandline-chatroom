@@ -2,6 +2,16 @@ import socket
 import threading
 import time
 
+"""
+TODO:
+
+	- Change the public usage of address to a username.
+
+	- Add a seperate method to control commands.
+
+	- Add reasons for clients being disconnected.
+"""
+
 class chatroomServer:
 	""" CLASS DEFINITION
 
