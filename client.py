@@ -11,7 +11,7 @@ class chatroomClient:
 
 	"""
 
-	def __init__(self, host: str, port: int):
+	def __init__(self):
 		""" self.__init__(str, int)
 
 			Connects to a host server over port port.
@@ -24,11 +24,25 @@ class chatroomClient:
 
 		#: Create the client and connect it to the host server.
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.client.connect((host, port))
 
 		#: Create a seperate thread to control listening to messages
 		#: coming from the server.
-		threading.Thread(target=self.listen).start()
+		self.listen_thread = threading.Thread(target=self.listen)
+
+	def join(self, host: str, port: int):
+		""" self.join(str, int)
+
+			Join the chatroom hosted on host port port.
+
+			Args:
+				host(str): The IP address of the host.
+				port(int): The port that the chatroom is hosted on.
+
+		"""
+
+
+		#: Connect to the room.
+		self.client.connect((host, port))
 
 		#: Main loop. This allows the user to send messages to the client.
 		while True:
@@ -79,4 +93,5 @@ if __name__ == "__main__":
 	server = 'localhost'
 	port = 34343
 
-	chatroomClient(server, port)
+	client = chatroomClient()
+	client.join(server, port)
