@@ -18,20 +18,27 @@
 		client(socket): The client that made the command request.
 		address(tuple): The IP and port of the client.
 		command_args(list): A list of the arguments passed with the command.
+
+	Finally, The /command command will show the client all available commands.
+	Further, the docstring of each function will also be shown to the user, so
+	that they have a better understanding of what each function does.
 """
 
 def quit(server_object, client, address, command_args):
 	"""
-		A default command that will have the client exit from
-		the server.
+		Closes the connection to the chatroom.
 	"""
 	server_object.close_client(client, address, "quit command")
 
 def commands(server_object, client, address, command_args):
+	"""
+		Lists out all of the commands for the client.
+	"""
 
 	msg = ""
 	for command in server_object.command_list.keys():
-		msg += "/" + command + "\n"
+		msg += "\n/" + command + " - "
+		msg += server_object.command_list[command].__doc__
 
 	client.send(msg.encode())
 

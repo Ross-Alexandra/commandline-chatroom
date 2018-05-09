@@ -9,6 +9,9 @@ TODO:
 
 	- Add command permissions
 
+	- Have commands print off thier docstring when /commands
+	  is used.
+
 	- Add reasons for clients being disconnected.
 """
 
@@ -157,8 +160,6 @@ class chatroomServer:
 
 		#: Split the command into its arguments
 		command_args = command.split(" ")
-
-		print(self.command_list.keys())
 
 		if command_args[0] in self.command_list.keys():
 			#: Call the requested command.
