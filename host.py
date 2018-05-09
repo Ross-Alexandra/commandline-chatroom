@@ -47,6 +47,8 @@ class chatroomServer:
 		from server_command_controller import command_list
 		self.command_list = command_list
 
+		self.client_threads = {}
+
 	def listen(self, max_connections: int = 5, inactivity_timeout: int = 60):
 		""" self.listen(int, int):
 
@@ -95,7 +97,7 @@ class chatroomServer:
 							if message[1] != address:
 								client.send(message[0].encode())
 						except:
-							self.close_client(client, address)
+							self.close_client(client, address, "missing connection")
 
 					#: Log that the message has been sent to each
 					#: client to the main server.
@@ -134,7 +136,10 @@ class chatroomServer:
 
 			#: Create a thread to handle messaging from this new client,
 			#: and pass the client and their address to the thread.
-			threading.Thread(target=self.manage_client, args=(client, addr)).start()
+			client_thread = threading.Thread(target=self.manage_client, args=(client, addr))
+			self.client_threads[client] = client_thread
+
+			client_thread.start()
 
 	def handle_commands(self, command: str, client, address):
 		""" self.handle_commands(str, socket, tuple)
@@ -180,7 +185,8 @@ class chatroomServer:
 		#: Print to the main server that this user has connected.
 		print("Client connected from {}".format(address))
 
-		while True:
+		#: Loop while the thread is being watched.
+		while self.client_threads[client] is not None:
 
 			#: Use a try-catch block to tell when the client has
 			#: either timed out, or disconnected.
@@ -206,8 +212,7 @@ class chatroomServer:
 			except Exception as e:
 
 				print(e)
-
-				self.close_client(client, address)
+				self.close_client(client, address, "inactivity")
 
 				#: End the thread.
 				return False
@@ -218,8 +223,8 @@ class chatroomServer:
 				#: processing another.
 				time.sleep(1)
 
-	def close_client(self, client, address):
-		""" self.close_client(socket, tuple)
+	def close_client(self, client, address, reason: str):
+		""" self.close_client(socket, tuple, str)
 
 			Closes the connection to the passed client, and sends a message
 			to the server that they have.
@@ -227,11 +232,11 @@ class chatroomServer:
 			Args:
 				client(socket): The client.
 				address(tuple): a Tuple of the client's IP address and port.)
-
+				reason(str): The reason for the client to be closed.
 		"""
 
 		#: Send the shutdown code to the client.
-		client.send("SD".encode())
+		client.send("close {}".format(reason).encode())
 
 		#: Append a message to the unprocess messages that the client
 		#: has disconnected.
@@ -242,6 +247,9 @@ class chatroomServer:
 		print("Removing inactive client {}".format(address))
 		self.clientlist.remove((client, address))
 		client.close()
+
+		#: Stop the client's thread, and remove its entry.
+		self.client_threads[client] = None
 
 if __name__ == "__main__":
 

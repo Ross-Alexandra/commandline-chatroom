@@ -25,7 +25,7 @@ def quit(server_object, client, address, command_args):
 		A default command that will have the client exit from
 		the server.
 	"""
-	server_object.close_client(client, address)
+	server_object.close_client(client, address, "quit command")
 
 def commands(server_object, client, address, command_args):
 
@@ -34,3 +34,4 @@ def commands(server_object, client, address, command_args):
 		msg += "/" + command + "\n"
 
 	client.send(msg.encode())
+
