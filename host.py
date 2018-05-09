@@ -191,7 +191,7 @@ class chatroomServer:
 			client.send("Enter a username.".encode())
 			usr = client.recv(1024).decode()
 
-			if usr.lower() not in [s.lower() for s in self.usrs.values()]:
+			if usr.lower() not in [s.lower() for s in self.usrs.values()] or len(usr) == 0:
 				self.usrs[address] = usr
 				break
 			else:
