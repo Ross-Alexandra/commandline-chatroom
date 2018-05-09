@@ -4,9 +4,6 @@ import time
 
 """
 TODO:
-
-	- Change the public usage of address to a username.
-
 	- Add command permissions
 
 	- Add a host terminal so that admin commands can be run
@@ -269,7 +266,7 @@ class chatroomServer:
 if __name__ == "__main__":
 
 	#: Creates a public server on port 34343
-	host = ''
+	host = '134.87.154.248'
 	port = 34343
 
 	#: Create the chatroom server, and listen for connections.
