@@ -35,10 +35,12 @@ def commands(server_object, client, address, command_args):
 		Lists out all of the commands for the client.
 	"""
 
+	import inspect
+
 	msg = ""
 	for command in server_object.command_list.keys():
 		msg += "\n/" + command + " - "
-		msg += server_object.command_list[command].__doc__
+		msg += inspect.getdoc(server_object.command_list[command])
 
 	client.send(msg.encode())
 
