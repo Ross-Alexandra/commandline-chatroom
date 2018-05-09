@@ -231,7 +231,7 @@ class chatroomServer:
 				reason(str): The reason for the client to be closed.
 		"""
 
-		if reason is None or len(reason) = 0:
+		if reason is None or len(reason) == 0:
 			reason = "[NO REASON SPECIFIED]"
 
 		#: Send the shutdown code to the client.
