@@ -8,6 +8,9 @@ TODO:
 	- Change the public usage of address to a username.
 
 	- Add command permissions
+
+	- Add a host terminal so that admin commands can be run
+	  from the host.
 """
 
 class chatroomServer:
@@ -37,6 +40,9 @@ class chatroomServer:
 
 		#: Used to hold all the messages that come in on one update.
 		self.messages = []
+
+		#: Used to hold the usernames assosiated to addresses.
+		self.usrs = {}
 
 		#: A list of connected clients.
 		self.clientlist = []
@@ -181,6 +187,16 @@ class chatroomServer:
 		#: Print to the main server that this user has connected.
 		print("Client connected from {}".format(address))
 
+		while True:
+			client.send("Enter a username.".encode())
+			usr = client.recv(1024).decode()
+
+			if usr.lower() not in [s.lower() for s in self.usrs.values()]:
+				self.usrs[address] = usr
+				break
+			else:
+				client.send("Invalid username. Please try again.".encode())
+
 		#: Loop while the thread is being watched.
 		while self.client_threads[client] is not None:
 
@@ -200,7 +216,7 @@ class chatroomServer:
 				elif msg[0] == "/":
 					self.handle_commands(msg[1:], client, address)
 				else:
-					self.messages.append(("{}: {}".format(address, msg), address))
+					self.messages.append(("{}: {}".format(self.usrs[address], msg), address))
 					print("Recieved message: \'{}\' from {}".format(msg, address))
 
 			#: All errors that can be produced will result in the
@@ -239,7 +255,7 @@ class chatroomServer:
 
 		#: Append a message to the unprocess messages that the client
 		#: has disconnected.
-		self.messages.append(("{} Has disconnected.".format(address), address))
+		self.messages.append(("{} Has disconnected.".format(self.usrs[address]), address))
 
 		#: Reomve the client from the clients list, and close their
 		#: connection.
@@ -256,4 +272,5 @@ if __name__ == "__main__":
 	host = ''
 	port = 34343
 
+	#: Create the chatroom server, and listen for connections.
 	chatroomServer(host, port).listen(inactivity_timeout=60)
