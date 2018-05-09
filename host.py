@@ -8,11 +8,6 @@ TODO:
 	- Change the public usage of address to a username.
 
 	- Add command permissions
-
-	- Have commands print off thier docstring when /commands
-	  is used.
-
-	- Add reasons for clients being disconnected.
 """
 
 class chatroomServer:
@@ -235,6 +230,9 @@ class chatroomServer:
 				address(tuple): a Tuple of the client's IP address and port.)
 				reason(str): The reason for the client to be closed.
 		"""
+
+		if reason is None or len(reason) = 0:
+			reason = "[NO REASON SPECIFIED]"
 
 		#: Send the shutdown code to the client.
 		client.send("close {}".format(reason).encode())
