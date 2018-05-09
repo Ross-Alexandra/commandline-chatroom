@@ -1,7 +1,6 @@
 import socket
 import threading
 import time
-from server_command_controller import command_list
 
 """
 TODO:
@@ -44,6 +43,9 @@ class chatroomServer:
 		#: A list of connected clients.
 		self.clientlist = []
 
+		#: Create an internal list of all the commands.
+		from server_command_controller import command_list
+		self.command_list = command_list
 
 	def listen(self, max_connections: int = 5, inactivity_timeout: int = 60):
 		""" self.listen(int, int):
@@ -146,11 +148,19 @@ class chatroomServer:
 				address(tuple): The ip and port of the client.
 		"""
 
+		print("Handling command \"{}\" from {}".format(command, address))
+
 		#: Split the command into its arguments
 		command_args = command.split(" ")
 
-		#: Call the requested command.
-		command_list[command_args[0]](self, client, address, command_args)
+		print(self.command_list.keys())
+
+		if command_args[0] in self.command_list.keys():
+			#: Call the requested command.
+			self.command_list[command_args[0]](self, client, address, command_args)
+		else:
+			#: Command was invalid, tell the user.
+			client.send("{} is not a valid command.".format(command_args[0]).encode())
 
 	def manage_client(self, client, address):
 		""" self.manage_client(socket, tuple)
@@ -186,14 +196,16 @@ class chatroomServer:
 				if msg == "":
 					continue
 				elif msg[0] == "/":
-					self.handle_command(msg[1:], client, address)
+					self.handle_commands(msg[1:], client, address)
 				else:
 					self.messages.append(("{}: {}".format(address, msg), address))
 					print("Recieved message: \'{}\' from {}".format(msg, address))
 
 			#: All errors that can be produced will result in the
 			#: client either being forcefully disconnected.
-			except:
+			except Exception as e:
+
+				print(e)
 
 				self.close_client(client, address)
 
