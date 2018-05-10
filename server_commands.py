@@ -43,4 +43,3 @@ def commands(server_object, client, address, command_args):
 		msg += inspect.getdoc(server_object.command_list[command])
 
 	client.send(msg.encode())
-

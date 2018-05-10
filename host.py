@@ -190,6 +190,8 @@ class chatroomServer:
 
 			if usr.lower() not in [s.lower() for s in self.usrs.values()] or len(usr) == 0:
 				self.usrs[address] = usr
+				client.send("Username set to {}.".format(usr).encode())
+				self.messages.append(("{} has connected.".format(usr), address))
 				break
 			else:
 				client.send("Invalid username. Please try again.".encode())
@@ -266,7 +268,7 @@ class chatroomServer:
 if __name__ == "__main__":
 
 	#: Creates a public server on port 34343
-	host = '134.87.154.248'
+	host = ''
 	port = 34343
 
 	#: Create the chatroom server, and listen for connections.

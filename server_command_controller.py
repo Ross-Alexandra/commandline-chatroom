@@ -17,4 +17,3 @@ def get_server_commands():
 
 #: Create a dictionary of server commands.
 command_list = {f: eval(f) for f in get_server_commands()}
-
