@@ -95,9 +95,12 @@ class chatroomServer:
 						#: this client no longer exists, and
 						#: should be removed.
 						try:
+							#: Dont send the message to the client who sent it.
 							if message[1] != address:
 								client.send(message[0].encode())
 						except:
+
+							#: This client is missing, and should be removed.
 							self.close_client(client, address, "missing connection")
 
 					#: Log that the message has been sent to each
@@ -185,15 +188,28 @@ class chatroomServer:
 		print("Client connected from {}".format(address))
 
 		while True:
+
+			#: Request a username from the new user.
 			client.send("Enter a username.".encode())
 			usr = client.recv(1024).decode()
 
+			#: Ensure that a username was given, and that it is not already in the room
 			if usr.lower() not in [s.lower() for s in self.usrs.values()] or len(usr) == 0:
+
+				#: If the username is valid, assign it to the address
 				self.usrs[address] = usr
+
+				#: Inform the user that their name was set.
 				client.send("Username set to {}.".format(usr).encode())
+
+				#: Inform all other users of their connections.
 				self.messages.append(("{} has connected.".format(usr), address))
+
+				#: Break from the get-username loop, as  a valid username was given.
 				break
 			else:
+
+				#: Otherwise the username was invalid. Inform the user, and get another username.
 				client.send("Invalid username. Please try again.".encode())
 
 		#: Loop while the thread is being watched.
@@ -207,14 +223,21 @@ class chatroomServer:
 				#: client.
 				msg = client.recv(1024).decode()
 
-				#: If the message is not blank, then append the message
+				#: If the message is not blank, and not a command, then append the message
 				#: to the unprocessed messages list, and print to the main
 				#: server that this client has sent a message.
 				if msg == "":
+
+					#: This message is blank, ignore it.
 					continue
+
 				elif msg[0] == "/":
+
+					#: This message is a command, pass it to handle_commands and continue.
 					self.handle_commands(msg[1:], client, address)
 				else:
+
+					#: Valid message, so append it to the unprocessed messages, and send it along.
 					self.messages.append(("{}: {}".format(self.usrs[address], msg), address))
 					print("Recieved message: \'{}\' from {}".format(msg, address))
 
