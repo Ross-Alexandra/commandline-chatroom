@@ -16,7 +16,7 @@
 		server_object(socket): The server that is being run. This is here to allow
 					access to things in the server.
 		client(socket): The client that made the command request.
-		address(tuple): The IP and port of the client.
+		address(str): The IP address of the client..
 		command_args(list): A list of the arguments passed with the command.
 
 	Finally, The /command command will show the client all available commands.

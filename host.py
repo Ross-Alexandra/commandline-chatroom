@@ -58,9 +58,16 @@ class chatroomServer:
 		from server_permissions import permission_types
 		self.permission_types = permission_types
 
+		#: Read from the relevant permissions files to create a dictionary
+		#: of addresses relating to their respective permission levels.
 		self.permissions = {}
 		for permission_type in self.permission_types.keys():
+
+			#: Each permission file follows the naming convention [permission_type]s.txt
 			with open(permission_type + "s.txt", 'r') as p_file:
+
+				#: Each line in this file will represent an IP address assosiated with that
+				#: permission level.
 				for line in p_file:
 					self.permissions[line.strip()] = self.permission_types[permission_type]
 
@@ -112,10 +119,13 @@ class chatroomServer:
 						#: should be removed.
 						try:
 							#: Dont send the message to the client who sent it.
+							#: Unless this is the address is the host (for testing
+							#: purposes.)
 							if message[1] != address or address == "127.0.0.1":
 								client.send(message[0].encode())
 						except Exception as e:
 
+							#: Print the exeption's stacktrace.
 							traceback.print_exc()
 
 							#: This client is missing, and should be removed.
@@ -159,11 +169,15 @@ class chatroomServer:
 			#: Append this newly connected client to the client list.
 			self.clientlist.append((client, addr))
 
-			print(self.permissions.keys())
-
+			#: If this IP address has not connected before, then
+			#: it's address wont be in any of the permissions
+			#: files. This means that we have to create a user entry
+			#: for them.
 			if addr not in self.permissions.keys():
+
+				#: Change this addresses permission level to user,
+				#: and reflect this in users.txt
 				self.change_permissions(addr, "user")
-				self.permissions[addr] = self.permission_types["user"]
 
 			#: Create a thread to handle messaging from this new client,
 			#: and pass the client and their address to the thread.
@@ -173,7 +187,7 @@ class chatroomServer:
 			client_thread.start()
 
 	def handle_commands(self, command: str, client, address):
-		""" self.handle_commands(str, socket, tuple)
+		""" self.handle_commands(str, socket, str)
 
 			Handle's commands sent by the user.
 
@@ -181,7 +195,7 @@ class chatroomServer:
 			Args:
 				command(str): The command that is to be run.
 				client(socket): The client trying to execute the command.
-				address(tuple): The ip and port of the client.
+				address(str): The ip of the client.
 		"""
 
 		print("Handling command \"{}\" from {}".format(command, address))
@@ -201,7 +215,7 @@ class chatroomServer:
 			client.send("{} is not a valid command.".format(command_args[0]).encode())
 
 	def manage_client(self, client, address):
-		""" self.manage_client(socket, tuple)
+		""" self.manage_client(socket, str)
 
 			Watches for messages to be recieved from the client.
 			If the client does not send a message before timeout,
@@ -210,8 +224,7 @@ class chatroomServer:
 
 			Args:
 				client(socket): The socket to the client.
-				address(tuple): A tuple of the client's IP address, and
-						their communication port.
+				address(str): The client's IP address.
 
 		"""
 
@@ -291,14 +304,14 @@ class chatroomServer:
 				time.sleep(1)
 
 	def close_client(self, client, address, reason: str):
-		""" self.close_client(socket, tuple, str)
+		""" self.close_client(socket, str, str)
 
 			Closes the connection to the passed client, and sends a message
 			to the server that they have.
 
 			Args:
 				client(socket): The client.
-				address(tuple): a Tuple of the client's IP address and port.)
+				address(str): The client's IP address
 				reason(str): The reason for the client to be closed.
 		"""
 
@@ -319,14 +332,21 @@ class chatroomServer:
 		#: Stop the client's thread, and remove its entry.
 		del self.client_threads[address]
 
+		#: Remove this user's address from the list of taken names.
 		del self.usrs[address]
 
+		#: Remove this client from the list of active clients, and
+		#: close the server's connection to the client.
 		self.clientlist.remove((client, address))
 		client.close()
 
 	def change_permissions(self, addr, new_permission):
-		"""
+		""" change_permissions(str, str)
+			Changes the permission level assosiated with the passed IP address.
 
+			Args:
+				addr(str): The IP address of the client to have its permissinon level changed.
+				new_permission(str): The new permission level to set the client to.
 
 			Returns:
 				0 if that user is already that permission.
@@ -334,31 +354,66 @@ class chatroomServer:
 				-1 if the passed permission is invalid.
 		"""
 
+		#: If the requested permission is not a valid permission type,
+		#: return -1
+		if new_permission not in self.permission_types.keys():
+			return -1
+
+		#: If the passed IP address already has a permission level assosiated with
+		#: them.
 		if addr in self.permissions.keys():
+
+			#: Get their current permission level.
 			cur_permission = str(self.permissions[addr]).lower()
 
+			#: If their current permission level is the same as their old one,
+			#: return 0.
 			if cur_permission == new_permission:
 				return 0
 
-			if new_permission not in self.permission_types.keys():
-				return -1
-
+			#: Unassosiate this IP address with its old permission level
+			#: by removing it from its old permission level's file.
 			with open(cur_permission + "s.txt", 'r') as p_file:
+
+				#: Create a temp file to reconstruct the file without the
+				#: IP address in it.
 				with open("__temp_permission_file__.txt", 'w+') as n_file:
 					for line in p_file:
+
+						#: If this is not the IP address whose permission is
+						#: changing, then write this IP address to the temp file.
 						if line.strip() != addr.strip():
 							n_file.write(line)
 
+			#: Replace the old permission file with the temp file, as the temp file
+			#: is exactly the same, but missing the IP address whose permission level
+			#: is chaning.
 			os.rename("__temp_permission_file__.txt", cur_permission + "s.txt")
 
-		with open(new_permission + "s.txt", 'a') as user_file:
+		#: Open the file pertaining to the permission level that the IP address is being set to
+		#: and append the IP address there so that the server will remember this IP
+		#: address as having this permission level.
+		with open(new_permission + "s.txt", 'a+') as user_file:
 			user_file.write(str(addr) + '\n')
 
+		#: Update the internal permissions list to reflect the change.
 		self.permissions[addr] = self.permission_types[new_permission]
 
+		#: Exit success.
 		return 1
 
 	def get_ip(self, username):
+		""" self.get_ip(str):
+
+			Returns the ip address assosiated with the passed username.
+
+			Args:
+				username(str): The username assosiated with the IP address.
+
+		"""
+
+		#: Reverse the usrs dictionary so we can lookup usernames against IP addresses,
+		#: and return the IP address.
 		reverse_dict = {}
 		for key, value, in self.usrs.items():
 			reverse_dict[value] = key
