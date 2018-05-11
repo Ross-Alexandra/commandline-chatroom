@@ -1,10 +1,13 @@
 import socket
 import threading
+import traceback
 import time
+import os
 
 """
 TODO:
-	- Add command permissions
+	- Have commands only executable by users with
+	  certain permission levels.
 
 	- Add a host terminal so that admin commands can be run
 	  from the host.
@@ -44,13 +47,26 @@ class chatroomServer:
 		#: A list of connected clients.
 		self.clientlist = []
 
+		#: A dictionary relating clients to their controlling threads.
+		self.client_threads = {}
+
 		#: Create an internal list of all the commands.
 		from server_command_controller import command_list
 		self.command_list = command_list
 
-		self.client_threads = {}
+		#: Get a dictionary of the types of permissions availiable.
+		from server_permissions import permission_types
+		self.permission_types = permission_types
 
-	def listen(self, max_connections: int = 5, inactivity_timeout: int = 60):
+		self.permissions = {}
+		for permission_type in self.permission_types.keys():
+			with open(permission_type + "s.txt", 'r') as p_file:
+				for line in p_file:
+					self.permissions[line.strip()] = self.permission_types[permission_type]
+
+		print("Server object initialized.")
+
+	def start(self, max_connections: int = 5, inactivity_timeout: int = 60):
 		""" self.listen(int, int):
 
 			The main control method of the server. When this method is run,
@@ -96,9 +112,11 @@ class chatroomServer:
 						#: should be removed.
 						try:
 							#: Dont send the message to the client who sent it.
-							if message[1] != address:
+							if message[1] != address or address == "127.0.0.1":
 								client.send(message[0].encode())
-						except:
+						except Exception as e:
+
+							traceback.print_exc()
 
 							#: This client is missing, and should be removed.
 							self.close_client(client, address, "missing connection")
@@ -131,6 +149,9 @@ class chatroomServer:
 			#: collect its information.
 			client, addr = self.server.accept()
 
+			#: Ignore the connecting port.
+			addr = addr[0]
+
 			#: Set the client's timeout time to the server's set
 			#: timeout.
 			client.settimeout(self._inactivity_timeout)
@@ -138,10 +159,16 @@ class chatroomServer:
 			#: Append this newly connected client to the client list.
 			self.clientlist.append((client, addr))
 
+			print(self.permissions.keys())
+
+			if addr not in self.permissions.keys():
+				self.change_permissions(addr, "user")
+				self.permissions[addr] = self.permission_types["user"]
+
 			#: Create a thread to handle messaging from this new client,
 			#: and pass the client and their address to the thread.
 			client_thread = threading.Thread(target=self.manage_client, args=(client, addr))
-			self.client_threads[client] = client_thread
+			self.client_threads[addr] = client_thread
 
 			client_thread.start()
 
@@ -164,7 +191,11 @@ class chatroomServer:
 
 		if command_args[0] in self.command_list.keys():
 			#: Call the requested command.
-			self.command_list[command_args[0]](self, client, address, command_args)
+			try:
+				self.command_list[command_args[0]](self, client, address, command_args)
+			except:
+				traceback.print_exc()
+				client.send("{} is not a valid syntax for the command.".format(command).encode())
 		else:
 			#: Command was invalid, tell the user.
 			client.send("{} is not a valid command.".format(command_args[0]).encode())
@@ -194,7 +225,9 @@ class chatroomServer:
 			usr = client.recv(1024).decode()
 
 			#: Ensure that a username was given, and that it is not already in the room
-			if usr.lower() not in [s.lower() for s in self.usrs.values()] or len(usr) == 0:
+			if usr.lower() not in [s.lower() for s in self.usrs.values()]\
+			   and len(usr) != 0\
+			   and usr[0] != '/':
 
 				#: If the username is valid, assign it to the address
 				self.usrs[address] = usr
@@ -213,7 +246,7 @@ class chatroomServer:
 				client.send("Invalid username. Please try again.".encode())
 
 		#: Loop while the thread is being watched.
-		while self.client_threads[client] is not None:
+		while address in self.client_threads.keys():
 
 			#: Use a try-catch block to tell when the client has
 			#: either timed out, or disconnected.
@@ -238,14 +271,14 @@ class chatroomServer:
 				else:
 
 					#: Valid message, so append it to the unprocessed messages, and send it along.
-					self.messages.append(("{}: {}".format(self.usrs[address], msg), address))
+					self.messages.append(("({} - {}): {}".format(self.usrs[address], self.permissions[address].permission, msg), address))
 					print("Recieved message: \'{}\' from {}".format(msg, address))
 
 			#: All errors that can be produced will result in the
 			#: client either being forcefully disconnected.
 			except Exception as e:
 
-				print(e)
+				traceback.print_exc()
 				self.close_client(client, address, "inactivity")
 
 				#: End the thread.
@@ -282,11 +315,55 @@ class chatroomServer:
 		#: Reomve the client from the clients list, and close their
 		#: connection.
 		print("Removing inactive client {}".format(address))
+
+		#: Stop the client's thread, and remove its entry.
+		del self.client_threads[address]
+
+		del self.usrs[address]
+
 		self.clientlist.remove((client, address))
 		client.close()
 
-		#: Stop the client's thread, and remove its entry.
-		self.client_threads[client] = None
+	def change_permissions(self, addr, new_permission):
+		"""
+
+
+			Returns:
+				0 if that user is already that permission.
+				1 if that user's permissions has successfully been updated.
+				-1 if the passed permission is invalid.
+		"""
+
+		if addr in self.permissions.keys():
+			cur_permission = str(self.permissions[addr]).lower()
+
+			if cur_permission == new_permission:
+				return 0
+
+			if new_permission not in self.permission_types.keys():
+				return -1
+
+			with open(cur_permission + "s.txt", 'r') as p_file:
+				with open("__temp_permission_file__.txt", 'w+') as n_file:
+					for line in p_file:
+						if line.strip() != addr.strip():
+							n_file.write(line)
+
+			os.rename("__temp_permission_file__.txt", cur_permission + "s.txt")
+
+		with open(new_permission + "s.txt", 'a') as user_file:
+			user_file.write(str(addr) + '\n')
+
+		self.permissions[addr] = self.permission_types[new_permission]
+
+		return 1
+
+	def get_ip(self, username):
+		reverse_dict = {}
+		for key, value, in self.usrs.items():
+			reverse_dict[value] = key
+
+		return reverse_dict[username]
 
 if __name__ == "__main__":
 
@@ -295,4 +372,5 @@ if __name__ == "__main__":
 	port = 34343
 
 	#: Create the chatroom server, and listen for connections.
-	chatroomServer(host, port).listen(inactivity_timeout=60)
+	chatroomServer(host, port).start(inactivity_timeout=60)
+
