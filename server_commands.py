@@ -83,3 +83,16 @@ def permissions(server_object, client, address, command_args):
 	permission_level = server_object.permissions[server_object.get_ip(usr)].permission
 
 	client.send(permission_level.encode())
+
+def user_list(server_object, client, address, command_args):
+	"""
+
+		Gets a list of all of the active users in the server.
+
+	"""
+
+	msg = ""
+	for usr in server_object.usrs.values():
+		msg += usr + '\n'
+
+	client.send(msg.encode())
