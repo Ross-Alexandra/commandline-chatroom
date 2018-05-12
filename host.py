@@ -63,8 +63,8 @@ class chatroomServer:
 		self.permissions = {}
 		for permission_type in self.permission_types.keys():
 
-			#: Each permission file follows the naming convention [permission_type]s.txt
-			with open(permission_type + "s.txt", 'r') as p_file:
+			#: Each permission file follows the naming convention [permission_type]s.perm
+			with open(permission_type + "s.perm", 'r') as p_file:
 
 				#: Each line in this file will represent an IP address assosiated with that
 				#: permission level.
@@ -176,7 +176,7 @@ class chatroomServer:
 			if addr not in self.permissions.keys():
 
 				#: Change this addresses permission level to user,
-				#: and reflect this in users.txt
+				#: and reflect this in users.perm
 				self.change_permissions(addr, "user")
 
 			#: Create a thread to handle messaging from this new client,
@@ -373,11 +373,11 @@ class chatroomServer:
 
 			#: Unassosiate this IP address with its old permission level
 			#: by removing it from its old permission level's file.
-			with open(cur_permission + "s.txt", 'r') as p_file:
+			with open(cur_permission + "s.perm", 'r') as p_file:
 
 				#: Create a temp file to reconstruct the file without the
 				#: IP address in it.
-				with open("__temp_permission_file__.txt", 'w+') as n_file:
+				with open("__temp_permission_file__.perm", 'w+') as n_file:
 					for line in p_file:
 
 						#: If this is not the IP address whose permission is
@@ -388,12 +388,12 @@ class chatroomServer:
 			#: Replace the old permission file with the temp file, as the temp file
 			#: is exactly the same, but missing the IP address whose permission level
 			#: is chaning.
-			os.rename("__temp_permission_file__.txt", cur_permission + "s.txt")
+			os.rename("__temp_permission_file__.perm", cur_permission + "s.perm")
 
 		#: Open the file pertaining to the permission level that the IP address is being set to
 		#: and append the IP address there so that the server will remember this IP
 		#: address as having this permission level.
-		with open(new_permission + "s.txt", 'a+') as user_file:
+		with open(new_permission + "s.perm", 'a+') as user_file:
 			user_file.write(str(addr) + '\n')
 
 		#: Update the internal permissions list to reflect the change.
