@@ -203,10 +203,24 @@ class chatroomServer:
 		#: Split the command into its arguments
 		command_args = command.split(" ")
 
+		#: if the command is a valid command
 		if command_args[0] in self.command_list.keys():
-			#: Call the requested command.
 			try:
-				self.command_list[command_args[0]](self, client, address, command_args)
+
+				#: Get the user's permission level, and the command's
+				#: permission level.
+				client_permissions = self.permissions[address].level
+				min_permission = self.command_list[command_args[0]][1]
+
+				#: If the user may run this command (ie their permission_level is
+				#: equal to or greater than that of the command) then run the command.
+				if client_permissions >= min_permission:
+					self.command_list[command_args[0]][0](self, client, address, command_args)
+
+				else:
+					#: If the user may not run the command, then inform them of that.
+					client.send("You do not have permission to use that command.".encode())
+
 			except:
 				traceback.print_exc()
 				client.send("{} is not a valid syntax for the command.".format(command).encode())
