@@ -3,6 +3,7 @@ import threading
 from getpass import getpass
 import argparse
 import sys
+import os
 
 class chatroomClient:
 	""" CLASS DEFINITION
@@ -52,7 +53,7 @@ class chatroomClient:
 			self.send(msg)
 
 			if msg == "/quit":
-				exit()
+				os._exit(0)
 
 	def listen(self):
 
@@ -79,7 +80,7 @@ class chatroomClient:
 
 				print("This client was closed due to {}.".format(reason))
 				self.client.close()
-				exit()
+				os._exit(0)
 
 			#: Otherwise, print the message to the commandline.
 			else:

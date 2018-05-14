@@ -5,13 +5,16 @@
 
 """
 
-#: Import the commands file so we can see what commands exist
+#: Import the server and client commands file so we can see what commands exist
+import client_commands
 import server_commands
 
-#: Import all of the commands from server_commands.
+#: Import all of the server and client commands..
 from server_commands import *
+from client_commands import *
 
-def get_server_commands():
+def get_client_commands():
+	""" Gets all the commands that clients can run"""
 
 	#: Import inpsect to get the docstring from each function.
 	import inspect
@@ -23,7 +26,7 @@ def get_server_commands():
 
 	#: Loop over every function in server_commands that is not a
 	#: built in python function (one that is surrounded by __)
-	for f in [f for f in dir(server_commands) if '__' not in f]:
+	for f in [f for f in dir(client_commands) if '__' not in f]:
 
 		#: Get the docstring for each function.
 		docstring = inspect.getdoc(eval(f))
@@ -37,6 +40,16 @@ def get_server_commands():
 	#: Return this
 	return cmds
 
+def get_server_commands():
+	""" Gets all the commands that the server can run """
+
+	#: Loop over every function in server_commands that is not a
+	#: built in python function (one that is surrounded by __)
+	cmds = [f for f in dir(server_commands) if '__' not in f]
+
+	return cmds
+
 #: Create a dictionary relating strings of command names to their respective functions
 #: and permission level.
-command_list = {f: (eval(f), perm) for f, perm in get_server_commands()}
+client_command_list = {f: (eval(f), perm) for f, perm in get_client_commands()}
+server_command_list = {f: eval(f) for f in get_server_commands()}

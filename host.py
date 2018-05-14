@@ -6,8 +6,11 @@ import os
 
 """
 TODO:
-	- Add a host terminal so that owner commands can be run
-	  from the host.
+	- Accept commandline arguments from user and host on startup.
+
+	- Create GUI interface for client connecting.
+
+	- Create testing suite.
 """
 
 class chatroomServer:
@@ -29,6 +32,10 @@ class chatroomServer:
 				port(int): The TCP port to host on.
 		"""
 
+		#: Store the server information.
+		self.host = host
+		self.port = port
+
 		#: Create a socket.
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -47,9 +54,13 @@ class chatroomServer:
 		#: A dictionary relating clients to their controlling threads.
 		self.client_threads = {}
 
-		#: Create an internal list of all the commands.
-		from server_command_controller import command_list
-		self.command_list = command_list
+		#: Create an internal list of all the client commands.
+		from command_controller import client_command_list
+		self.client_command_list = client_command_list
+
+		#: Create an internal list of all the server commands.
+		from command_controller import server_command_list
+		self.server_command_list = server_command_list
 
 		#: Get a dictionary of the types of permissions availiable.
 		from server_permissions import permission_types
@@ -72,6 +83,7 @@ class chatroomServer:
 			except FileNotFoundError as e:
 				with open(permission_type + "s.perm", 'w+') as p_file:
 					pass
+		self.running = True
 
 		print("Server object initialized.")
 
@@ -101,12 +113,19 @@ class chatroomServer:
 		#: recieved, then it is appended to self.messages.
 		#: This allows the listen connection to simplly watch the contents
 		#: of self.messages to know if a message has been recieved.
-		threading.Thread(target=self.get_clients).start()
+		self.get_clients_thread = threading.Thread(target=self.get_clients).start()
 
 		#: Create a thread that checks if any messages have been sent.
 		#: If a message has been sent, then this thread will handle sending
 		#: the message to all other users.
-		threading.Thread(target=self.handle_messaging).start()
+		self.handle_messaging_thread = threading.Thread(target=self.handle_messaging).start()
+
+		while self.running:
+			cmd = str(input())
+
+			cmd_args = cmd.split(" ")
+
+			self.server_command_list[cmd_args[0]](self, cmd_args)
 
 	def handle_messaging(self):
 		""" self.handle_messaging()
@@ -116,7 +135,7 @@ class chatroomServer:
 		#: Main loop. This checks the contents of self.messages every
 		#: second. If a message exists in self.messages, then send that
 		#: message to every user, and clear self.messages.
-		while True:
+		while self.running:
 
 			#: Check if there are any unprocessed messages.
 			if len(self.messages) != 0:
@@ -167,10 +186,21 @@ class chatroomServer:
 
 		"""
 
-		while True:
+		while self.running:
 			#: Wait for a connection to be started. When it is,
 			#: collect its information.
-			client, addr = self.server.accept()
+			try:
+				client, addr = self.server.accept()
+
+			#: OSError will be thrown when self.server.stop
+			#: is run. Catch this error and if the server is
+			#: shutting down (ie self.runnning is False) then
+			#: ignore it and exit, otherwise log the error..
+			except OSError:
+				if not self.running:
+					exit()
+				else:
+					traceback.print_exc()
 
 			#: Ignore the connecting port.
 			addr = addr[0]
@@ -217,18 +247,18 @@ class chatroomServer:
 		command_args = command.split(" ")
 
 		#: if the command is a valid command
-		if command_args[0] in self.command_list.keys():
+		if command_args[0] in self.client_command_list.keys():
 			try:
 
 				#: Get the user's permission level, and the command's
 				#: permission level.
 				client_permissions = self.permissions[address].level
-				min_permission = self.command_list[command_args[0]][1]
+				min_permission = self.client_command_list[command_args[0]][1]
 
 				#: If the user may run this command (ie their permission_level is
 				#: equal to or greater than that of the command) then run the command.
 				if client_permissions >= min_permission:
-					self.command_list[command_args[0]][0](self, client, address, command_args)
+					self.client_command_list[command_args[0]][0](self, client, address, command_args)
 
 				else:
 					#: If the user may not run the command, then inform them of that.
@@ -258,7 +288,7 @@ class chatroomServer:
 		#: Print to the main server that this user has connected.
 		print("Client connected from {}".format(address))
 
-		while True:
+		while self.running:
 
 			#: Request a username from the new user.
 			client.send("Enter a username.".encode())
@@ -354,7 +384,7 @@ class chatroomServer:
 
 		#: Reomve the client from the clients list, and close their
 		#: connection.
-		print("Removing inactive client {}".format(address))
+		print("Removing client {} for {}".format(address, reason))
 
 		#: Stop the client's thread, and remove its entry.
 		del self.client_threads[address]
