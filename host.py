@@ -6,10 +6,7 @@ import os
 
 """
 TODO:
-	- Have commands only executable by users with
-	  certain permission levels.
-
-	- Add a host terminal so that admin commands can be run
+	- Add a host terminal so that owner commands can be run
 	  from the host.
 """
 
@@ -63,13 +60,18 @@ class chatroomServer:
 		self.permissions = {}
 		for permission_type in self.permission_types.keys():
 
-			#: Each permission file follows the naming convention [permission_type]s.perm
-			with open(permission_type + "s.perm", 'a+') as p_file:
+			try:
+				#: Each permission file follows the naming convention [permission_type]s.perm
+				with open(permission_type + "s.perm", 'r') as p_file:
 
-				#: Each line in this file will represent an IP address assosiated with that
-				#: permission level.
-				for line in p_file:
-					self.permissions[line.strip()] = self.permission_types[permission_type]
+					#: Each line in this file will represent an IP address assosiated with that
+					#: permission level.
+					for line in p_file:
+						self.permissions[line.strip()] = self.permission_types[permission_type]
+
+			except FileNotFoundError as e:
+				with open(permission_type + "s.perm", 'w+') as p_file:
+					pass
 
 		print("Server object initialized.")
 
@@ -101,6 +103,16 @@ class chatroomServer:
 		#: of self.messages to know if a message has been recieved.
 		threading.Thread(target=self.get_clients).start()
 
+		#: Create a thread that checks if any messages have been sent.
+		#: If a message has been sent, then this thread will handle sending
+		#: the message to all other users.
+		threading.Thread(target=self.handle_messaging).start()
+
+	def handle_messaging(self):
+		""" self.handle_messaging()
+
+			Handles sending messages to the clients.
+		"""
 		#: Main loop. This checks the contents of self.messages every
 		#: second. If a message exists in self.messages, then send that
 		#: message to every user, and clear self.messages.
@@ -145,6 +157,7 @@ class chatroomServer:
 				#: second, as sending a message to each client may
 				#: have taken time.
 				time.sleep(1)
+
 
 	def get_clients(self):
 		""" self.get_clients
