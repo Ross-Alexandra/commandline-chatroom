@@ -64,7 +64,7 @@ class chatroomServer:
 		for permission_type in self.permission_types.keys():
 
 			#: Each permission file follows the naming convention [permission_type]s.perm
-			with open(permission_type + "s.perm", 'r') as p_file:
+			with open(permission_type + "s.perm", 'a+') as p_file:
 
 				#: Each line in this file will represent an IP address assosiated with that
 				#: permission level.
