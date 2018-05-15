@@ -71,18 +71,16 @@ class chatroomServer:
 		self.permissions = {}
 		for permission_type in self.permission_types.keys():
 
-			try:
-				#: Each permission file follows the naming convention [permission_type]s.perm
-				with open(permission_type + "s.perm", 'r') as p_file:
+			p_type = self.permission_types[permission_type]
 
-					#: Each line in this file will represent an IP address assosiated with that
-					#: permission level.
-					for line in p_file:
-						self.permissions[line.strip()] = self.permission_types[permission_type]
+			#: For each IP assosiated with this permission
+			#: level, create a dictionary entry with the
+			#: IP as the key, and the permission level as
+			#: the value.
+			for client_addr in p_type.get_clients():
+				self.permissions[client_addr] = p_type
 
-			except FileNotFoundError as e:
-				with open(permission_type + "s.perm", 'w+') as p_file:
-					pass
+		#: Allow threads to start when created.
 		self.running = True
 
 		print("Server object initialized.")
@@ -218,8 +216,7 @@ class chatroomServer:
 			#: for them.
 			if addr not in self.permissions.keys():
 
-				#: Change this addresses permission level to user,
-				#: and reflect this in users.perm
+				#: Change this address's permission level to user
 				self.change_permissions(addr, "user")
 
 			#: Create a thread to handle messaging from this new client,
@@ -421,37 +418,21 @@ class chatroomServer:
 		if addr in self.permissions.keys():
 
 			#: Get their current permission level.
-			cur_permission = str(self.permissions[addr]).lower()
+			cur_permission = self.permissions[addr]
 
 			#: If their current permission level is the same as their old one,
 			#: return 0.
 			if cur_permission == new_permission:
 				return 0
 
-			#: Unassosiate this IP address with its old permission level
-			#: by removing it from its old permission level's file.
-			with open(cur_permission + "s.perm", 'r') as p_file:
-
-				#: Create a temp file to reconstruct the file without the
-				#: IP address in it.
-				with open("__temp_permission_file__.perm", 'w+') as n_file:
-					for line in p_file:
-
-						#: If this is not the IP address whose permission is
-						#: changing, then write this IP address to the temp file.
-						if line.strip() != addr.strip():
-							n_file.write(line)
-
-			#: Replace the old permission file with the temp file, as the temp file
-			#: is exactly the same, but missing the IP address whose permission level
-			#: is chaning.
-			os.rename("__temp_permission_file__.perm", cur_permission + "s.perm")
+			else:
+				#: Remove the client from the permission's file.
+				cur_permission.remove_client(addr)
 
 		#: Open the file pertaining to the permission level that the IP address is being set to
 		#: and append the IP address there so that the server will remember this IP
 		#: address as having this permission level.
-		with open(new_permission + "s.perm", 'a+') as user_file:
-			user_file.write(str(addr) + '\n')
+		self.permission_types[new_permission].add_client(addr)
 
 		#: Update the internal permissions list to reflect the change.
 		self.permissions[addr] = self.permission_types[new_permission]

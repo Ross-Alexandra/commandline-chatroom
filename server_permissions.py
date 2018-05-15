@@ -2,6 +2,6 @@ from permissions import Permissions
 
 permission_types = {
 
-		"user": Permissions('User', 0),
-		"admin": Permissions('Admin', 1)
+		"user": Permissions('user', 0),
+		"admin": Permissions('admin', 1)
 }
