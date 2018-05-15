@@ -95,8 +95,31 @@ class chatroomClient:
 
 if __name__ == "__main__":
 
-	server = 'localhost'
-	port = 34343
+	#: Create an argument parser.
+	parser = argparse.ArgumentParser(description='Connects to a chatroom server.')
+
+	#: Add an argument to get the host IP.
+	#: Due to how sockets work, it is not reccommended to
+	#: supply a --host flag if you dont know what you're doing.
+	parser.add_argument('-s', '--server', type=str,
+			   help='The IP the server is hosted on.')
+
+	#: Add an argument to get the host port.
+	parser.add_argument('-p', '--port', type=int, help='The port the server is on.')
+
+	#: Parse the arguments
+	args = parser.parse_args()
+
+	#: Get the information passed by the argument parser and store it.
+	if args.server is None:
+		server = 'localhost'
+	else:
+		server = args.server
+
+	if args.port is None:
+		port = 34343
+	else:
+		port = args.port
 
 	client = chatroomClient()
 	client.join(server, port)

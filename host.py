@@ -2,12 +2,11 @@ import socket
 import threading
 import traceback
 import time
+import argparse
 import os
 
 """
 TODO:
-	- Accept commandline arguments from user and host on startup.
-
 	- Create GUI interface for client connecting.
 
 	- Create testing suite.
@@ -474,9 +473,33 @@ class chatroomServer:
 
 if __name__ == "__main__":
 
-	#: Creates a public server on port 34343
-	host = ''
-	port = 34343
+	#: Create an argument parser.
+	parser = argparse.ArgumentParser(description='Starts hosting a chatroom server.')
+
+	#: Add an argument to get the host IP.
+	#: Due to how sockets work, it is not reccommended to
+	#: supply a --host flag if you dont know what you're doing.
+	parser.add_argument('--host', type=str,
+			   help='The IP to host the server on (only'
+				 'specify this if you know what you\'re doing'
+			   )
+
+	#: Add an argument to get the host port.
+	parser.add_argument('-p', '--port', type=int, help='The port to host on (Default: 34343).')
+
+	#: Parse the arguments
+	args = parser.parse_args()
+
+	#: Get the information passed by the argument parser and store it.
+	if args.host is None:
+		host = ''
+	else:
+		host = args.host
+
+	if args.port is None:
+		port = 34343
+	else:
+		port = args.port
 
 	#: Create the chatroom server, and listen for connections.
 	chatroomServer(host, port).start(inactivity_timeout=60)
