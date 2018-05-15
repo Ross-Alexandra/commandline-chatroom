@@ -13,7 +13,7 @@ class Permissions:
 		self.level = permission_level
 
 		#: Set the filename for the permissions file.
-		self.permission_file = name.lower() + "s.perm"
+		self.permission_file = "permissions/" + name.lower() + "s.perm"
 
 		#: Create the permission file if it doesn't already exist.
 		with open(self.permission_file, 'a+') as p_file:
