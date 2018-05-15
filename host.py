@@ -8,8 +8,6 @@ import os
 TODO:
 	- Accept commandline arguments from user and host on startup.
 
-	- Rework directory structure.
-
 	- Create GUI interface for client connecting.
 
 	- Create testing suite.
@@ -38,6 +36,9 @@ class chatroomServer:
 				port(int): The TCP port to host on.
 		"""
 
+		import commands
+		import permissions
+
 		#: Store the server information.
 		self.host = host
 		self.port = port
@@ -61,16 +62,13 @@ class chatroomServer:
 		self.client_threads = {}
 
 		#: Create an internal list of all the client commands.
-		from command_controller import client_command_list
-		self.client_command_list = client_command_list
+		self.client_command_list = commands.client_command_list
 
 		#: Create an internal list of all the server commands.
-		from command_controller import server_command_list
-		self.server_command_list = server_command_list
+		self.server_command_list = commands.server_command_list
 
 		#: Get a dictionary of the types of permissions availiable.
-		from server_permissions import permission_types
-		self.permission_types = permission_types
+		self.permission_types = permissions.permission_types
 
 		#: Read from the relevant permissions files to create a dictionary
 		#: of addresses relating to their respective permission levels.

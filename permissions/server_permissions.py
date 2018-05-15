@@ -1,4 +1,4 @@
-from permissions import Permissions
+from permissions.permissions import Permissions
 
 permission_types = {
 

@@ -1,0 +1,2 @@
+from .command_controller import client_command_list
+from .command_controller import server_command_list
