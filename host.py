@@ -8,6 +8,8 @@ import os
 TODO:
 	- Accept commandline arguments from user and host on startup.
 
+	- Rework directory structure.
+
 	- Create GUI interface for client connecting.
 
 	- Create testing suite.
