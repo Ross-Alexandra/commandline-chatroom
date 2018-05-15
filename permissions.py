@@ -61,9 +61,11 @@ class Permissions:
 
 		"""
 
+		import os
+
 		#: Unassosiate this IP address with its old permission level
 		#: by removing it from its old permission level's file.
-		with open(cur_permission + "s.perm", 'r') as p_file:
+		with open(self.permission_file, 'r') as p_file:
 
 			#: Create a temp file to reconstruct the file without the
 			#: IP address in it.
@@ -78,4 +80,4 @@ class Permissions:
 		#: Replace the old permission file with the temp file, as the temp file
 		#: is exactly the same, but missing the IP address whose permission level
 		#: is chaning.
-		os.rename("__temp_permission_file__.perm", cur_permission + "s.perm")
+		os.rename("__temp_permission_file__.perm", self.permission_file)

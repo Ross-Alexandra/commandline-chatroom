@@ -11,6 +11,10 @@ TODO:
 	- Create GUI interface for client connecting.
 
 	- Create testing suite.
+
+	- Allow "Shortcut: [function]" in command docstrings to
+	  print these as shortcuts to the main function rather than
+	  as seperate functions.
 """
 
 class chatroomServer:
@@ -46,7 +50,7 @@ class chatroomServer:
 		self.messages = []
 
 		#: Used to hold the usernames assosiated to addresses.
-		self.usrs = {}
+		self.usrs = {'': "Server"}
 
 		#: A list of connected clients.
 		self.clientlist = []
@@ -119,11 +123,16 @@ class chatroomServer:
 		self.handle_messaging_thread = threading.Thread(target=self.handle_messaging).start()
 
 		while self.running:
-			cmd = str(input())
+			try:
+				cmd = str(input())
 
-			cmd_args = cmd.split(" ")
+				cmd_args = cmd.split(" ")
 
-			self.server_command_list[cmd_args[0]](self, cmd_args)
+				self.server_command_list[cmd_args[0]](self, cmd_args)
+			except:
+				traceback.print_exc()
+				print("Invalid command, please try again.")
+
 
 	def handle_messaging(self):
 		""" self.handle_messaging()
