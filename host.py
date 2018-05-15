@@ -123,15 +123,20 @@ class chatroomServer:
 		self.handle_messaging_thread = threading.Thread(target=self.handle_messaging).start()
 
 		while self.running:
+			cmd = str(input())
+
+			cmd_args = cmd.split(" ")
+
 			try:
-				cmd = str(input())
-
-				cmd_args = cmd.split(" ")
-
 				self.server_command_list[cmd_args[0]](self, cmd_args)
 			except:
-				traceback.print_exc()
-				print("Invalid command, please try again.")
+
+				#: For debugging use, if a ! is in a command,
+				#: a traceback will be printed if errors occur.
+				if '!' in cmd_args[0]:
+					traceback.print_exc()
+
+				print("Invalid command, please try again. Append '!' to the command for more info.")
 
 
 	def handle_messaging(self):

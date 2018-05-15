@@ -16,7 +16,7 @@ class Permissions:
 		self.permission_file = name.lower() + "s.perm"
 
 		#: Create the permission file if it doesn't already exist.
-		with open(self.permission_file, 'w+') as p_file:
+		with open(self.permission_file, 'a+') as p_file:
 			pass
 
 	def __str__(self):
@@ -35,7 +35,7 @@ class Permissions:
 			for line in p_file:
 
 				#: Append this IP to the list
-				client.append(line.strip())
+				clients.append(line.strip())
 
 		return clients
 

@@ -72,7 +72,7 @@ def promote_user(server_object, client, address, command_args):
 		Changes the permissions of the passed user to the passed permission level.
 		eg) /promote_user Bob admin
 
-		Permission_level = 1
+		Permission_level = 2
 	"""
 
 	#: Get the information for who's changing the permission of whose client,
