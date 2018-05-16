@@ -495,6 +495,13 @@ if __name__ == "__main__":
 	#: Add an argument to get the host port.
 	parser.add_argument('-p', '--port', type=int, help='The port to host on (Default: 34343).')
 
+	#: Add an argument to get the timeout for each client
+	parser.add_argument('-t', '--timeout', type=int,
+		             help='The number of seconds for an unresponsive client to be removed')
+
+	parser.add_argument('-c', '--connections', type=int,
+			     help='The maximum number of simultanious connected clients.')
+
 	#: Parse the arguments
 	args = parser.parse_args()
 
@@ -509,6 +516,16 @@ if __name__ == "__main__":
 	else:
 		port = args.port
 
+	if args.timeout is None:
+		timeout = 60
+	else:
+		timeout = args.timeout
+
+	if args.connections is None:
+		connections = 5
+	else:
+		connections = args.connections
+
 	#: Create the chatroom server, and listen for connections.
-	chatroomServer(host, port).start(inactivity_timeout=60)
+	chatroomServer(host, port).start(inactivity_timeout=timeout, max_connections=connections)
 
