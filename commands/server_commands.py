@@ -68,6 +68,17 @@ def change_permission(server_object, command_args):
 
 def cp(server_object, command_args):
 	"""
-		Shortcut: change_permission
+		Shortcut for change_permission command.
 	"""
 	change_permission(server_object, command_args)
+
+def say(server_object, command_args):
+	"""
+		Sends a message to the server
+	"""
+
+	#: Join the args into a message
+	msg = " ".join(command_args[1:])
+
+	#: Send the message.
+	server_object.send_all(msg)

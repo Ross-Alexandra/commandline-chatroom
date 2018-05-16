@@ -7,13 +7,9 @@ import os
 
 """
 TODO:
-	- Create GUI interface for client connecting.
+	- Create GUI interface for both the client and host
 
-	- Create testing suite.
-
-	- Allow "Shortcut: [function]" in command docstrings to
-	  print these as shortcuts to the main function rather than
-	  as seperate functions.
+	- Create testing suite
 """
 
 class chatroomServer:
@@ -127,7 +123,7 @@ class chatroomServer:
 			cmd_args = cmd.split(" ")
 
 			try:
-				self.server_command_list[cmd_args[0]](self, cmd_args)
+				self.server_command_list[cmd_args[0].replace('!', '')](self, cmd_args)
 			except:
 
 				#: For debugging use, if a ! is in a command,
@@ -470,6 +466,18 @@ class chatroomServer:
 			reverse_dict[value] = key
 
 		return reverse_dict[username]
+
+	def send_all(self, msg: str):
+		"""
+			Sends a message to all clients
+
+			Args:
+				msg(str): The message to send to all clients.
+		"""
+
+		#: Append the message to the messages list to be later
+		#: processed.
+		self.messages.append(("(server): {}".format(msg), ""))
 
 if __name__ == "__main__":
 
