@@ -112,14 +112,21 @@ if __name__ == "__main__":
 
 	#: Get the information passed by the argument parser and store it.
 	if args.server is None:
-		server = 'localhost'
+		server = str(input("Please enter the IP address to connect to: "))
 	else:
 		server = args.server
 
 	if args.port is None:
-		port = 34343
+		port = str(input("Please enter the port to connect to: "))
 	else:
 		port = args.port
+
+	if server == "":
+		server = "localhost"
+	if port == "":
+		port = 34343
+	else:
+		port = int(port)
 
 	client = chatroomClient()
 	client.join(server, port)
