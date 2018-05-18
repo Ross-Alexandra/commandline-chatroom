@@ -84,7 +84,7 @@ class chatroomServer:
 
 		print("Server object initialized.")
 
-	def start(self, max_connections: int = 5, inactivity_timeout: int = 60, no_client: bool= False):
+	def start(self, max_connections: int = 5, inactivity_timeout: int = 60, no_console: bool= False):
 		""" self.listen(int, int):
 
 			The main control method of the server. When this method is run,
@@ -117,7 +117,7 @@ class chatroomServer:
 		#: the message to all other users.
 		self.handle_messaging_thread = threading.Thread(target=self.handle_messaging).start()
 
-		while self.running and not no_client:
+		while self.running and not no_console:
 			cmd = str(input())
 
 			cmd_args = cmd.split(" ")
