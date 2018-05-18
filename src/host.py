@@ -296,30 +296,35 @@ class chatroomServer:
 
 		while self.running:
 
-			#: Request a username from the new user.
-			client.send("Enter a username.".encode())
-			usr = client.recv(1024).decode()
+			#: try-except in case user quits while prompted to enter a username.
+			try:
+				#: Request a username from the new user.
+				client.send("Enter a username.".encode())
+				usr = client.recv(1024).decode()
 
-			#: Ensure that a username was given, and that it is not already in the room
-			if usr.lower() not in [s.lower() for s in self.usrs.values()]\
-			   and len(usr) != 0\
-			   and usr[0] != '/':
+				#: Ensure that a username was given, and that it is not already in the room
+				if usr.lower() not in [s.lower() for s in self.usrs.values()]\
+			   	and len(usr) != 0\
+			   	and usr[0] != '/':
 
-				#: If the username is valid, assign it to the address
-				self.usrs[address] = usr
+					#: If the username is valid, assign it to the address
+					self.usrs[address] = usr
 
-				#: Inform the user that their name was set.
-				client.send("Username set to {}.".format(usr).encode())
+					#: Inform the user that their name was set.
+					client.send("Username set to {}.".format(usr).encode())
 
-				#: Inform all other users of their connections.
-				self.messages.append(("{} has connected.".format(usr), address))
+					#: Inform all other users of their connections.
+					self.messages.append(("{} has connected.".format(usr), address))
 
-				#: Break from the get-username loop, as  a valid username was given.
-				break
-			else:
+					#: Break from the get-username loop, as  a valid username was given.
+					break
+				else:
 
-				#: Otherwise the username was invalid. Inform the user, and get another username.
-				client.send("Invalid username. Please try again.".encode())
+					#: Otherwise the username was invalid. Inform the user, and get another username.
+					client.send("Invalid username. Please try again.".encode())
+			except:
+				self.close_client(client, address, "inactivity")
+				return
 
 		#: Loop while the thread is being watched.
 		while address in self.client_threads.keys():
@@ -382,25 +387,34 @@ class chatroomServer:
 			reason = "[NO REASON SPECIFIED]"
 
 		#: Send the shutdown code to the client.
-		client.send("close {}".format(reason).encode())
+		try:
+			client.send("close {}".format(reason).encode())
+		except:
+			#: User is already gone.
+			pass
 
 		#: Append a message to the unprocess messages that the client
-		#: has disconnected.
-		self.messages.append(("{} Has disconnected.".format(self.usrs[address]), address))
+		#: has disconnected. Only do this if that user didn't
+		#: quit before selecting a username.
+		if address in self.usrs.keys():
+			self.messages.append(("{} Has disconnected.".format(self.usrs[address]), address))
+
+			#: Remove this user's address from the list of taken names.
+			del self.usrs[address]
 
 		#: Reomve the client from the clients list, and close their
 		#: connection.
 		print("Removing client {} for {}".format(address, reason))
 
 		#: Stop the client's thread, and remove its entry.
-		del self.client_threads[address]
-
-		#: Remove this user's address from the list of taken names.
-		del self.usrs[address]
+		#: if they have a thread.
+		if address in self.client_threads.keys():
+			del self.client_threads[address]
 
 		#: Remove this client from the list of active clients, and
 		#: close the server's connection to the client.
-		self.clientlist.remove((client, address))
+		if (client, address) in self.clientlist:
+			self.clientlist.remove((client, address))
 		client.close()
 
 	def change_permissions(self, addr, new_permission):

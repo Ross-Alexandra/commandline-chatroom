@@ -30,6 +30,8 @@ class chatroomClient:
 		#: coming from the server.
 		self.listen_thread = threading.Thread(target=self.listen)
 
+		self.joined = True
+
 	def join(self, host: str, port: int):
 		""" self.join(str, int)
 
@@ -48,19 +50,26 @@ class chatroomClient:
 		self.listen_thread.start()
 
 		#: Main loop. This allows the user to send messages to the client.
-		while True:
+		while self.joined:
 			msg = str(input("You: "))
-			self.send(msg)
+			if self.joined:
+				self.send(msg)
 
 			if msg == "/quit":
-				os._exit(0)
+				self.quit()
+
+	def quit(self):
+		""" Close the connection to the server."""
+
+		self.joined = False
+		self.client.close()
 
 	def listen(self):
 
 		print("Connected to the room")
 
 		#: Watch for messages coming from the server.
-		while True:
+		while self.joined:
 
 			#: Wait for a message to be recieved from the server.
 			msg = self.client.recv(1024).decode()
@@ -79,8 +88,7 @@ class chatroomClient:
 				reason = msg[6:]
 
 				print("This client was closed due to {}.".format(reason))
-				self.client.close()
-				os._exit(0)
+				self.quit()
 
 			#: Otherwise, print the message to the commandline.
 			else:
