@@ -1,3 +1,5 @@
+import os
+
 class Permissions:
 	""" A class to contain basic information and functions
 	    surrounding every permission type.
@@ -12,8 +14,18 @@ class Permissions:
 		#: Set the permission's permission level.
 		self.level = permission_level
 
+		#: Get the current working directory.
+		self.permission_file = os.path.join(os.path.dirname(__file__),
+							name.lower() + "s.perm")
+
 		#: Set the filename for the permissions file.
-		self.permission_file = "permissions/" + name.lower() + "s.perm"
+#		if "permissions" not in cur_path:
+#			self.permission_file = "permissions/" + name.lower() + "s.perm"
+#		else:
+#			self.permission_file = name.lower() + "s.perm"
+#
+#		#: Get the absolute path of the permission file.
+#		self.permission_file = os.path.abspath(self.permission_file)
 
 		#: Create the permission file if it doesn't already exist.
 		with open(self.permission_file, 'a+') as p_file:

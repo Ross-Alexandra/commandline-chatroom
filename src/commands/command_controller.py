@@ -6,12 +6,12 @@
 """
 
 #: Import the server and client commands file so we can see what commands exist
-import commands.client_commands as client_commands
-import commands.server_commands as server_commands
+from . import client_commands as client_commands
+from . import server_commands as server_commands
 
 #: Import all of the server and client commands..
-from commands.server_commands import *
-from commands.client_commands import *
+from .server_commands import *
+from .client_commands import *
 
 def get_client_commands():
 	""" Gets all the commands that clients can run"""
