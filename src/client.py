@@ -32,7 +32,7 @@ class chatroomClient:
 
 		self.joined = True
 
-	def join(self, host: str, port: int):
+	def join(self, host: str, port: int, slient: bool = False):
 		""" self.join(str, int)
 
 			Join the chatroom hosted on host port port.
@@ -50,7 +50,7 @@ class chatroomClient:
 		self.listen_thread.start()
 
 		#: Main loop. This allows the user to send messages to the client.
-		while self.joined:
+		while self.joined and not slient:
 			msg = str(input("You: "))
 			if self.joined:
 				self.send(msg)
