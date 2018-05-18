@@ -32,7 +32,7 @@ class chatroomClient:
 
 		self.joined = True
 
-	def join(self, host: str, port: int, slient: bool = False):
+	def join(self, host: str, port: int, silent: bool = False):
 		""" self.join(str, int)
 
 			Join the chatroom hosted on host port port.
@@ -40,7 +40,7 @@ class chatroomClient:
 			Args:
 				host(str): The IP address of the host.
 				port(int): The port that the chatroom is hosted on.
-				slient(bool): If True then this client does not run
+				silent(bool): If True then this client does not run
 					      the message sending loop.
 
 		"""

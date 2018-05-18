@@ -31,8 +31,13 @@ class chatroomServer:
 				port(int): The TCP port to host on.
 		"""
 
-		import commands
-		import permissions
+		#: Allow this to be run as a module, or py file.
+		try:
+			import commands
+			import permissions
+		except ImportError:
+			from chatroom import commands as commands
+			from chatroom import permissions as permissions
 
 		#: Store the server information.
 		self.host = host
