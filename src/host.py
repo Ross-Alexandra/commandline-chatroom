@@ -95,6 +95,8 @@ class chatroomServer:
 				max_connections(int): The maximum number of allowed clients.
 				inactivity_timeout(int): The number of seconds to wait for a
 							 client to be considered timed-out.
+				no_console(bool): If True, then there is no console for the
+						  server to enter commands in.
 		"""
 
 		#: Create [max_connections] slots for clients to connect to.

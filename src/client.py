@@ -40,6 +40,8 @@ class chatroomClient:
 			Args:
 				host(str): The IP address of the host.
 				port(int): The port that the chatroom is hosted on.
+				slient(bool): If True then this client does not run
+					      the message sending loop.
 
 		"""
 
@@ -65,6 +67,9 @@ class chatroomClient:
 		self.client.close()
 
 	def listen(self):
+		"""
+			Listens for messages having come from the host.
+		"""
 
 		print("Connected to the room")
 
