@@ -24,24 +24,12 @@
 def stop(server_object, command_args):
 	""" Stops the server. """
 
-	import socket
 	import os
 
-	print("Started shutdown.")
-
-	#: Terminate all looping threads.
-	server_object.running = False
-
-	#: Close the connection to each client.
-	for client, addr in server_object.clientlist:
-		server_object.close_client(client, addr, "Server Shutdown")
-
-	server_object.server.close()
-
-	print("Shutdown successful")
+	server_object.stop()
 
 	#: Exit.
-	os._exit(0)
+	#os._exit(0)
 
 def change_permission(server_object, command_args):
 	"""

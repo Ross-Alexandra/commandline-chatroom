@@ -49,20 +49,33 @@ class chatroomClient:
 		#: Connect to the room.
 		self.client.connect((host, port))
 
+		self.silent = silent
+
 		self.listen_thread.start()
 
 		#: Main loop. This allows the user to send messages to the client.
-		while self.joined and not slient:
+		while self.joined and not silent:
 			msg = str(input("You: "))
 			if self.joined:
 				self.send(msg)
 
 			if msg == "/quit":
-				self.quit()
+				self.quit(True)
 
-	def quit(self):
+	def quit(self, server_alerted: bool):
 		""" Close the connection to the server."""
 
+		#: Ensure the server know's that we're quitting.
+		if not server_alerted:
+			try:
+				self.send("/quit")
+			except:
+				#: If this fails then no
+				#: connection is possible, so continue
+				#: to clean up.
+				pass
+
+		#: Close down the threads and the connection.
 		self.joined = False
 		self.client.close()
 
@@ -77,13 +90,19 @@ class chatroomClient:
 		while self.joined:
 
 			#: Wait for a message to be recieved from the server.
-			msg = self.client.recv(1024).decode()
+			try:
+				msg = self.client.recv(1024).decode()
+			except OSError:
+				print("Connection to the server has been lost.")
+
+				#: Quit from the server to do cleanup.
+				self.quit(False)
 
 			#: If the message is empty, ignore it.
 			if msg == "":
 				continue
 
-			#: If the message is SD, then the server has told the client
+			#: If the message is close", then the server has told the client
 			#: to shut down, so it will. This is not an issue, as users
 			#: messages will always have an identifier and : before their
 			#: message, thus,the only messages that don't include an
@@ -93,10 +112,10 @@ class chatroomClient:
 				reason = msg[6:]
 
 				print("This client was closed due to {}.".format(reason))
-				self.quit()
+				self.quit(True)
 
 			#: Otherwise, print the message to the commandline.
-			else:
+			elif not self.silent:
 				print('\r' + msg, end='')
 
 				print("\nYou: ", end='')

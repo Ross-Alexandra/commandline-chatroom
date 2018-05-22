@@ -140,6 +140,21 @@ class chatroomServer:
 
 				print("Invalid command, please try again. Append '!' to the command for more info.")
 
+	def stop(self):
+
+		print("Started shutdown.")
+
+		#: Terminate all looping threads.
+		self.running = False
+
+		#: Close the connection to each client.
+		for client, addr in self.clientlist:
+			self.close_client(client, addr, "Server Shutdown")
+
+		self.server.close()
+
+		print("Shutdown successful")
+
 
 	def handle_messaging(self):
 		""" self.handle_messaging()
