@@ -22,12 +22,14 @@ class testClient(unittest.TestCase):
 
 		#: Run the tests.
 		client.join('localhost', 12345, silent=True)
+		time.sleep(.01) #: Give the server time to update.
 
 		#: Check results.
 		self.assertTrue(len(self.server.clientlist) == 1)
 
 		#: Clean up
-		client.quit(False)
+		client.joined = False
+		client.client.close()
 
 	def testQuit(self):
 		"""
@@ -39,7 +41,7 @@ class testClient(unittest.TestCase):
 
 		#: Get basic setup
 		client = chatroomClient()
-		client.join('localhost', 12345, silent=True)
+		client.client.connect(('localhost', 12345))
 
 		#: Run the tests
 		client.quit(False)
@@ -58,7 +60,10 @@ class testClient(unittest.TestCase):
 
 		#: Get basic setup.
 		client = chatroomClient()
-		client.join('localhost', 12345, silent=True)
+		client.client.connect(('localhost', 12345))
+		client.silent = True
+		client.listen_thread.start()
+
 		time.sleep(.01) #: Give the server time to update.
 		server_cnx = self.server.clientlist[0][0]
 
@@ -76,11 +81,12 @@ class testClient(unittest.TestCase):
 
 		#: Get basic setup.
 		client = chatroomClient()
-		client.join('localhost', 12345, silent = True)
+		client.client.connect(('localhost', 12345))
+		client.silent = True
 
 		#: Run the test
 		client.send("TEST")
-		time.sleep(.1)
+		time.sleep(.01)
 
 		#: Check results.
 		self.assertTrue(any("TEST" in msg[0] for msg in self.server.messages))
