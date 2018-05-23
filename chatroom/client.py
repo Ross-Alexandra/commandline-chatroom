@@ -4,6 +4,7 @@ from getpass import getpass
 import argparse
 import sys
 import os
+import time
 
 class chatroomClient:
 	""" CLASS DEFINITION
@@ -30,7 +31,17 @@ class chatroomClient:
 		#: coming from the server.
 		self.listen_thread = threading.Thread(target=self.listen)
 
+		#: Create a seperate thread to control displaying messages.
+		#: Handling this seperatedly from listening for messages
+		#: ensures that messages aren't lost in the time it takes
+		#: for a message to be displayed.
+		self.messages = []
+		self.display_thread = threading.Thread(target=self.display_messages)
+
 		self.joined = True
+
+		#: Used to ensure you: doesnt appear twice.
+		self.displayed_you = False
 
 	def join(self, host: str, port: int, silent: bool = False):
 		""" self.join(str, int)
@@ -53,14 +64,34 @@ class chatroomClient:
 
 		self.listen_thread.start()
 
+		self.display_thread.start()
+
 		#: Main loop. This allows the user to send messages to the client.
 		while self.joined and not silent:
-			msg = str(input("You: "))
+
+			#: If a "you: " was displayed by a new message,
+			#: Then dont append one now.
+			if not self.displayed_you:
+				msg = str(input("You: "))
+			else:
+				self.displayed_you = False
+				msg = str(input())
+
+			#: If the client is a part of the server, send
+			#: the message.
 			if self.joined:
 				self.send(msg)
 
 			if msg == "/quit":
 				self.quit(True)
+
+			#: Server waits .25s after a recieved message.
+			#: This ensures that a user's message will not be
+			#: concatinated if they send them too quickly.
+			#: No security risk, if this is changed, only
+			#: lost UX.
+			#: This may fail with a ping higher than 250.
+			time.sleep(.5)
 
 	def quit(self, server_alerted: bool):
 		""" Close the connection to the server."""
@@ -79,6 +110,42 @@ class chatroomClient:
 		self.joined = False
 		self.client.close()
 
+	def display_messages(self):
+		"""
+			Displays recieved messages.
+			This ensures that recieved messages dont get lost
+			by the time this display takes.
+		"""
+
+		while self.joined:
+			if len(self.messages) != 0:
+				for msg in self.messages:
+					#: If the message is empty, ignore it.
+					if msg == "":
+						continue
+
+					#: If the message is close", then the server has told the client
+					#: to shut down, so it will. This is not an issue, as users
+					#: messages will always have an identifier and : before their
+					#: message, thus,the only messages that don't include an
+					#: identifier will be from the server itself.
+					elif msg[:5] == "close":
+
+						reason = msg[6:]
+
+						print("This client was closed due to {}.".format(reason))
+						self.quit(True)
+
+					#: Otherwise, print the message to the commandline.
+					elif not self.silent:
+						print('\r' + msg, end='')
+
+						print("\nYou: ", end='')
+						self.displayed_you = True
+
+					#: Remove the processed message
+					self.messages.remove(msg)
+
 	def listen(self):
 		"""
 			Listens for messages having come from the host.
@@ -91,34 +158,12 @@ class chatroomClient:
 
 			#: Wait for a message to be recieved from the server.
 			try:
-				msg = self.client.recv(1024).decode()
+				self.messages.append(self.client.recv(1024).decode())
 			except OSError:
 				print("Connection to the server has been lost.")
 
 				#: Quit from the server to do cleanup.
 				self.quit(False)
-
-			#: If the message is empty, ignore it.
-			if msg == "":
-				continue
-
-			#: If the message is close", then the server has told the client
-			#: to shut down, so it will. This is not an issue, as users
-			#: messages will always have an identifier and : before their
-			#: message, thus,the only messages that don't include an
-			#: identifier will be from the server itself.
-			elif msg[:5] == "close":
-
-				reason = msg[6:]
-
-				print("This client was closed due to {}.".format(reason))
-				self.quit(True)
-
-			#: Otherwise, print the message to the commandline.
-			elif not self.silent:
-				print('\r' + msg, end='')
-
-				print("\nYou: ", end='')
 
 	def send(self, msg: str):
 		""" Sends the message msg to the server to be processed. """

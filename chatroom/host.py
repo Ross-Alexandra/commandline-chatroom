@@ -194,10 +194,10 @@ class chatroomServer:
 					#: Log that the message has been sent to each
 					#: client to the main server.
 					print("Sending message from {} to all".format(message[1]))
+					self.messages.remove(message) #: Remove proccessed message.
+					time.sleep(.01) #: Ensure no timing errors between client
+							#: and host.
 
-				#: Remove all the messages, as they have all now been
-				#: processed.
-				self.messages = []
 			else:
 
 				#: If no messages were recieved, wait one second.
@@ -391,7 +391,7 @@ class chatroomServer:
 
 				#: If a message was sent sucessfully, wait one second before
 				#: processing another.
-				time.sleep(1)
+				time.sleep(.25)
 
 	def close_client(self, client, address, reason: str):
 		""" self.close_client(socket, str, str)
