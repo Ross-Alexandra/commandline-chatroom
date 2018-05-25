@@ -194,9 +194,9 @@ class chatroomServer:
 					#: Log that the message has been sent to each
 					#: client to the main server.
 					print("Sending message from {} to all".format(message[1]))
-					self.messages.remove(message) #: Remove proccessed message.
 					time.sleep(.01) #: Ensure no timing errors between client
 							#: and host.
+					self.messages.remove(message) #: Remove proccessed message.
 
 			else:
 

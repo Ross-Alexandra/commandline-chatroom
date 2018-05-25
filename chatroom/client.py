@@ -38,6 +38,9 @@ class chatroomClient:
 		self.messages = []
 		self.display_thread = threading.Thread(target=self.display_messages)
 
+		#: Have a most recent message for testing purposes.
+		self.most_recent_message = ""
+
 		self.joined = True
 
 		#: Used to ensure you: doesnt appear twice.
@@ -158,7 +161,9 @@ class chatroomClient:
 
 			#: Wait for a message to be recieved from the server.
 			try:
-				self.messages.append(self.client.recv(1024).decode())
+				#: Store a most recent message for testing purposes.
+				self.most_recent_message = self.client.recv(1024).decode()
+				self.messages.append(self.most_recent_message)
 			except OSError:
 				print("Connection to the server has been lost.")
 
