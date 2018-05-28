@@ -8,14 +8,14 @@ from chatroom.host import chatroomServer
 
 class testClient(unittest.TestCase):
 
-	def testJoin(self):
+	def testJoinFunctionality(self):
 		"""
 			This will test to see if a client can
 			successfully connect to the server and
 			be registered as connected.
 		"""
 
-		print("\n---------- testJoin ----------")
+		print("\n---------- testJoinFunctionality ----------")
 
 		#: Get basic setup
 		client = chatroomClient()
@@ -31,13 +31,13 @@ class testClient(unittest.TestCase):
 		client.joined = False
 		client.client.close()
 
-	def testQuit(self):
+	def testQuitFunctionality(self):
 		"""
 			Test to see if the quit function will successfully
 			sever the connection to the server.
 		"""
 
-		print("\n---------- testQuit ----------")
+		print("\n---------- testQuitFunctionality ----------")
 
 		#: Get basic setup
 		client = chatroomClient()
@@ -54,30 +54,28 @@ class testClient(unittest.TestCase):
 		self.assertEqual(client.client.fileno(), -1)
 
 
-	def testListen(self):
+	def testListenFunctionality(self):
 
-		print("\n---------- testListen ----------")
+		print("\n---------- testListenFunctionality ----------")
 
 		#: Get basic setup.
 		client = chatroomClient()
-		client.client.connect(('localhost', 12345))
-		client.silent = True
-		client.listen_thread.start()
+		client.join('localhost', 12345, silent=True)
 
-		time.sleep(.01) #: Give the server time to update.
+		time.sleep(.05) #: Give the server time to update.
 		server_cnx = self.server.clientlist[0][0]
 
 		#: Run the tests
 		server_cnx.send("close Server Test".encode())
-		time.sleep(.01) #: Give the server time to update.
+		time.sleep(.1) #: Give the server time to update.
 
 		#: Check results
 		#: If a socket's fileno() method returns -1, then
 		#: the socket has been disconnected.
 		self.assertEqual(client.client.fileno(), -1)
 
-	def testSend(self):
-		print("\n---------- testSend ----------")
+	def testSendFunctionality(self):
+		print("\n---------- testSendFunctionality ----------")
 
 		#: Get basic setup.
 		client = chatroomClient()
@@ -96,6 +94,7 @@ class testClient(unittest.TestCase):
 
 	def setUp(self):
 		#: Setup necessary structures.
+		print("\n")
 		self.server = chatroomServer('localhost', 12345)
 		self.server.start(inactivity_timeout =5, no_console=True)
 

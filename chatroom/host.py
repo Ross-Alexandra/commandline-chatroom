@@ -194,8 +194,6 @@ class chatroomServer:
 					#: Log that the message has been sent to each
 					#: client to the main server.
 					print("Sending message from {} to all".format(message[1]))
-					time.sleep(.01) #: Ensure no timing errors between client
-							#: and host.
 					self.messages.remove(message) #: Remove proccessed message.
 
 			else:
@@ -313,6 +311,8 @@ class chatroomServer:
 
 		"""
 
+		send_sleep_time = .25
+
 		#: Print to the main server that this user has connected.
 		print("Client connected from {}".format(address))
 
@@ -349,7 +349,7 @@ class chatroomServer:
 				return
 
 		#: Loop while the thread is being watched.
-		while address in self.client_threads.keys():
+		while address in self.client_threads.keys() and self.running:
 
 			#: Use a try-catch block to tell when the client has
 			#: either timed out, or disconnected.
@@ -375,7 +375,7 @@ class chatroomServer:
 
 					#: Valid message, so append it to the unprocessed messages, and send it along.
 					self.messages.append(("({} - {}): {}".format(self.usrs[address], self.permissions[address].permission, msg), address))
-					print("Recieved message: \'{}\' from {}".format(msg, address))
+					print("received message: \'{}\' from {}".format(msg, address))
 
 			#: All errors that can be produced will result in the
 			#: client either being forcefully disconnected.
@@ -391,7 +391,7 @@ class chatroomServer:
 
 				#: If a message was sent sucessfully, wait one second before
 				#: processing another.
-				time.sleep(.25)
+				time.sleep(send_sleep_time)
 
 	def close_client(self, client, address, reason: str):
 		""" self.close_client(socket, str, str)
