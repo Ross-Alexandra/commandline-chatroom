@@ -1,12 +1,10 @@
-# commandline-chatroom
-A basic command line chatroom application utilising sockets and multi-threading.
+# PyChatroom
+A (to-be) GUI based chatroom application utilising sockets and multi-threading.
 
-Running python3 host.py will setup the chatroom server on the host computer.
-Default is to broadcast over port 34343, however this can be changed easilly.
+Running python3 -m chatroom.host (or python3 chatroom/host.py) will setup the chatroom server on the host computer.
+Default is to broadcast over port 34343, however this can be changed easilly with the -p switch.
 
-Running python3 client.py will give access to this chatroom as a client. 
-In order to connect remotely (once ports have been forwarded), the client
-needs to connect to you IP address rather than 'localhost'
+Running python3 -m chatroom.client (or python3 chatroom/client.py) will give access to this chatroom as a client. 
 
 server_commands_controller.py is used internally to handle getting
 server commands from server_commands.py
