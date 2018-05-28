@@ -9,7 +9,11 @@ import os
 TODO:
 	- Create GUI interface for both the client and host
 
-	- Create testing suite
+	- Add seperate rooms to server
+
+	- Simplify adding new permission types.
+
+	- Improve tests to hit more edge cases.
 """
 
 class chatroomServer:
