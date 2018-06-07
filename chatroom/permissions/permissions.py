@@ -73,8 +73,6 @@ class Permissions:
 
 		"""
 
-		import os
-
 		#: Unassosiate this IP address with its old permission level
 		#: by removing it from its old permission level's file.
 		with open(self.permission_file, 'r') as p_file:

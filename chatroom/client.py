@@ -13,16 +13,17 @@ class chatroomClient:
 
 	"""
 
-	def __init__(self):
-		""" self.__init__(str, int)
+	def __init__(self, print_to=None):
+		""" self.__init__()
 
 			Connects to a host server over port port.
 
 			Args:
-				host(str): The ip address of the server.
-				port(int): the TCP that the server talks over.
+				print_to: The stream to print text to.
 
 		"""
+
+		self.print_to = print_to if print_to is not None else self.safe_print
 
 		#: Create the client and connect it to the host server.
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -136,14 +137,14 @@ class chatroomClient:
 
 						reason = msg[6:]
 
-						print("This client was closed due to {}.".format(reason))
+						self.print_to("This client was closed due to {}.".format(reason))
 						self.quit(True)
 
 					#: Otherwise, print the message to the commandline.
-					elif not self.silent:
-						print('\r' + msg, end='')
+					elif not self.silent or self.print_to != self.safe_print:
 
-						print("\nYou: ", end='')
+						self.print_to(msg)
+
 						self.displayed_you = True
 
 					#: Remove the processed message
@@ -154,7 +155,7 @@ class chatroomClient:
 			Listens for messages having come from the host.
 		"""
 
-		print("Connected to the room")
+		self.print_to("Connected to the room")
 
 		#: Watch for messages coming from the server.
 		while self.joined:
@@ -164,16 +165,23 @@ class chatroomClient:
 				#: Store a most recent message for testing purposes.
 				self.most_recent_message = self.client.recv(1024).decode()
 				self.messages.append(self.most_recent_message)
+				if self.print_to != self.safe_print:
+					print("Message recieved.")
+
 			except OSError:
-				print("Connection to the server has been lost.")
+				self.print_to("Connection to the server has been lost.")
 
 				#: Quit from the server to do cleanup.
 				self.quit(False)
+		self.print_to("Disconnected from the room")
 
 	def send(self, msg: str):
 		""" Sends the message msg to the server to be processed. """
 		self.client.send(msg.encode())
 
+	def safe_print(self, msg):
+		print('\r' + msg, end='')
+		print("\nYou: ", end='')
 
 if __name__ == "__main__":
 
