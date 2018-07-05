@@ -25,7 +25,7 @@ class chatroomServer:
 
 	"""
 
-	def __init__(self, host: str, port: int):
+	def __init__(self, host: str='', port: int=34343, print_to=print):
 		""" self.__init__(str, int):
 
 			Intialized the server on host, with port port.
@@ -46,6 +46,7 @@ class chatroomServer:
 		#: Store the server information.
 		self.host = host
 		self.port = port
+		self.print_to = print_to
 
 		#: Create a socket.
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -91,7 +92,7 @@ class chatroomServer:
 		#: Allow threads to start when created.
 		self.running = True
 
-		print("Server object initialized.")
+		self.print_to("Server object initialized.")
 
 	def start(self, max_connections: int = 5, inactivity_timeout: int = 60, no_console: bool= False):
 		""" self.listen(int, int):
@@ -142,11 +143,11 @@ class chatroomServer:
 				if '!' in cmd_args[0]:
 					traceback.print_exc()
 
-				print("Invalid command, please try again. Append '!' to the command for more info.")
+				self.print_to("Invalid command, please try again. Append '!' to the command for more info.")
 
 	def stop(self):
 
-		print("Started shutdown.")
+		self.print_to("Started shutdown.")
 
 		#: Terminate all looping threads.
 		self.running = False
@@ -157,7 +158,7 @@ class chatroomServer:
 
 		self.server.close()
 
-		print("Shutdown successful")
+		self.print_to("Shutdown successful")
 
 
 	def handle_messaging(self):
@@ -197,7 +198,7 @@ class chatroomServer:
 
 					#: Log that the message has been sent to each
 					#: client to the main server.
-					print("Sending message from {} to all".format(message[1]))
+					self.print_to("Sending message from {} to all".format(message[1]))
 					self.messages.remove(message) #: Remove proccessed message.
 
 			else:
@@ -271,7 +272,7 @@ class chatroomServer:
 				address(str): The ip of the client.
 		"""
 
-		print("Handling command \"{}\" from {}".format(command, address))
+		self.print_to("Handling command \"{}\" from {}".format(command, address))
 
 		#: Split the command into its arguments
 		command_args = command.split(" ")
@@ -318,7 +319,7 @@ class chatroomServer:
 		send_sleep_time = .25
 
 		#: Print to the main server that this user has connected.
-		print("Client connected from {}".format(address))
+		self.print_to("Client connected from {}".format(address))
 
 		while self.running:
 
@@ -379,7 +380,7 @@ class chatroomServer:
 
 					#: Valid message, so append it to the unprocessed messages, and send it along.
 					self.messages.append(("({} - {}): {}".format(self.usrs[address], self.permissions[address].permission, msg), address))
-					print("received message: \'{}\' from {}".format(msg, address))
+					self.print_to("received message: \'{}\' from {}".format(msg, address))
 
 			#: All errors that can be produced will result in the
 			#: client either being forcefully disconnected.
@@ -430,7 +431,7 @@ class chatroomServer:
 
 		#: Reomve the client from the clients list, and close their
 		#: connection.
-		print("Removing client {} for {}".format(address, reason))
+		self.print_to("Removing client {} for {}".format(address, reason))
 
 		#: Stop the client's thread, and remove its entry.
 		#: if they have a thread.
