@@ -1,20 +1,20 @@
 from tkinter import *
 
 import tkinter.scrolledtext as tkst
-from chatroom.client import chatroomClient
+from chatroom.host import chatroomServer
 
 import threading
 import time
 
-class clientGUI:
+class serverGUI:
 
 	def __init__(self):
 
 		#: Draw the original page.
 		root = Tk()
 		root.attributes('-topmost', -1)
-		root.geometry("500x250+100+100")
-		root.overrideredirect(True)
+		root.geometry("500x250+600+100")
+		#root.overrideredirect(True)
 
 		#root.wm_attributes('-alpha', 0.8)
 
@@ -22,8 +22,8 @@ class clientGUI:
 		chat.place(x=50, y=20, anchor="nw")
 		chat.config(state=DISABLED)
 
-		input_box = Entry(root, width=50)
-		input_box.place(x=50, y=150)
+		input_box = Entry(root, width=46)
+		input_box.place(x=50, y=190)
 		input_box.bind('<Return>', self.send)
 
 		close_button = Button(root, text="Close Window", command=self.stop)
@@ -47,23 +47,30 @@ class clientGUI:
 		self.chat.see(END)
 
 	def send(self, event=None):
-		msg = self.input_box.get().strip()
+		cmd = self.input_box.get().strip()
+		cmd_args = cmd.split(" ")
 		self.input_box.delete(0, END)
 
-		self.client.send(msg)
-		self.screen_write("You: " + msg)
-		if msg == "/quit":
-			self.stop()
+		print(cmd_args)
 
-		time.sleep(.5)
+		try:
+			self.host.server_command_list[cmd_args[0].replace("!", '')](self.host, cmd_args)
+		except Exception as e:
 
-	def start(self, server='localhost', port=34343):
+			#: For debugging use, if a ! is in a command,
+			#: a traceback will be printed if an error occurs.
+			if '!' in cmd_args[0]:
+				self.screen_write(str(e))
+			else:
+				self.screen_write("Invalid command, please try again. Append '!' to the command to see a traceback.")
 
-		self.client = chatroomClient(print_to = self.screen_write)
-		self.client.join(server, port, silent=True)
+	def start(self, host='', port=34343):
+
+		self.host = chatroomServer(print_to = self.screen_write)
+		self.host.start(inactivity_timeout=60, max_connections=5, no_console=True)
 
 		self.root.mainloop()
 
 	def stop(self):
-		self.client.quit(False)
+		self.host.stop()
 		self.root.destroy()
